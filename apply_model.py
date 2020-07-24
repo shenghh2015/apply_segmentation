@@ -36,9 +36,11 @@ for img_fn in image_fns:
 images = np.stack(images); gt_maps = np.stack(gt_maps) # an array of image and ground truth label maps
 
 ## Image preprocessing
+print('Preprocessing ...')
 backbone = 'efficientnetb3'
 preprocess_input = sm.get_preprocessing(backbone) ## preprocessing function
 images = preprocess_input(images); #gt_maps = preprocess_input(gt_maps)
+print('Preprocessing done !')
 
 ## Load the trained model
 model=tf.keras.models.load_model(model_folder+'/ready_model.h5')
