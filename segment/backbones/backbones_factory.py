@@ -1,5 +1,5 @@
 import copy
-import model as eff
+from . import model as eff
 from models_factory import ModelsFactory
 
 
