@@ -1,4 +1,4 @@
 git pull
 git add -A .
-git commit -m 'v100'
+git commit -m 'segmentation'
 git push origin
