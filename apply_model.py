@@ -1,17 +1,17 @@
 import os
 import cv2
 
+import sys
+sys.path.append('segment')
 import tensorflow as tf
 import numpy as np
-import matplotlib.pyplot as plt
 import argparse
 import segment as sm
-from segment import Unet
 
 from helper_function import precision, recall, f1_score, iou_calculate
 from sklearn.metrics import confusion_matrix
 
-sm.set_framework('tf.keras')
+# sm.set_framework('tf.keras')
 import glob
 from natsort import natsorted
 
@@ -49,11 +49,11 @@ for v in range(len(splits)):
 		backbone = splits[v+1]
 
 DATA_DIR = '/data/datasets/{}'.format(dataset)
-# x_train_dir = os.path.join(DATA_DIR, 'train_images')
-# y_train_dir = os.path.join(DATA_DIR, 'train_masks')
-# 
-# x_valid_dir = os.path.join(DATA_DIR, 'val_images')
-# y_valid_dir = os.path.join(DATA_DIR, 'val_masks')
+x_train_dir = os.path.join(DATA_DIR, 'train_images')
+y_train_dir = os.path.join(DATA_DIR, 'train_masks')
+
+x_valid_dir = os.path.join(DATA_DIR, 'val_images')
+y_valid_dir = os.path.join(DATA_DIR, 'val_masks')
 
 x_test_dir = os.path.join(DATA_DIR, 'test_images')
 y_test_dir = os.path.join(DATA_DIR, 'test_masks')
@@ -201,34 +201,8 @@ def get_preprocessing(preprocessing_fn):
 if os.path.exists(model_folder+'/ready_model.h5'):
 	model=tf.keras.models.load_model(model_folder+'/ready_model.h5')
 
-# network
-best_weight = model_folder+'/best_model.h5'
-CLASSES = []
 preprocess_input = sm.get_preprocessing(backbone)
 
-#create model
-CLASSES = ['live', 'inter', 'dead']
-n_classes = len(CLASSES) + 1
-activation = 'softmax'
-net_func = globals()[net_arch]
-model = net_func(backbone, classes=n_classes, activation=activation)
-
-#load best weights
-model.load_weights(best_weight)
-
-# define optomizer
-optim = tf.keras.optimizers.Adam(0.001)
-
-# Segmentation models losses can be combined together by '+' and scaled by integer or float factor
-# set class weights for dice_loss (car: 1.; pedestrian: 2.; background: 0.5;)
-dice_loss = sm.losses.DiceLoss(class_weights=np.array([1, 1, 1, 0.5]))
-focal_loss = sm.losses.CategoricalFocalLoss()
-total_loss = dice_loss + (1 * focal_loss)
-
-metrics = [sm.metrics.IOUScore(threshold=0.5), sm.metrics.FScore(threshold=0.5)]
-
-# compile keras model with defined optimozer, loss and metrics
-model.compile(optim, total_loss, metrics)
 
 # evaluate model
 subsets = ['train', 'val', 'test']
@@ -239,6 +213,7 @@ if subset == 'val':
 elif subset == 'train':
 	x_test_dir = x_train_dir; y_test_dir = y_train_dir
 
+CLASSES = ['live', 'inter', 'dead']
 test_dataset = Dataset(
     x_test_dir, 
     y_test_dir, 
@@ -249,18 +224,14 @@ test_dataset = Dataset(
 
 test_dataloader = Dataloder(test_dataset, batch_size=1, shuffle=False)
 
-# scores = model.evaluate_generator(test_dataloader)
-# print("Loss: {:.5}".format(scores[0]))
-# for metric, value in zip(metrics, scores[1:]):
-#     print("mean {}: {:.5}".format(metric.__name__, value))
-
 # calculate the pixel-level classification performance
 pr_masks = model.predict(test_dataloader); 
 pr_maps = np.argmax(pr_masks,axis=-1)
 
-gt_masks = []
+gt_masks = []; images = []
 for i in range(len(test_dataset)):
-    _, gt_mask = test_dataset[i];gt_masks.append(gt_mask)
+    image, gt_mask = test_dataset[i];gt_masks.append(gt_mask); images.append(image)
+images = np.stack(images)
 gt_masks = np.stack(gt_masks);gt_maps = np.argmax(gt_masks,axis=-1)
 
 ## IoU and dice coefficient
