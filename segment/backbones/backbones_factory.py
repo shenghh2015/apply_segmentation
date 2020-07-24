@@ -1,6 +1,6 @@
 import copy
-import efficientnet.model as eff
-from classification_models.models_factory import ModelsFactory
+import model as eff
+from models_factory import ModelsFactory
 
 
 class BackbonesFactory(ModelsFactory):
