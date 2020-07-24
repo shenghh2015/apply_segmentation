@@ -14,7 +14,6 @@
 # ==============================================================================
 
 import functools
-from .__version__ import __version__
 
 _KERAS_BACKEND = None
 _KERAS_LAYERS = None
