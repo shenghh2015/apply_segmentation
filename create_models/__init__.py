@@ -110,6 +110,7 @@ def get_preprocessing(name):
     preprocess_input = Backbones.get_preprocessing(name)
     preprocess_input = inject_global_submodules(preprocess_input)
     preprocess_input = filter_kwargs(preprocess_input)
+    print(preprocess_input)
     return preprocess_input
 
 
