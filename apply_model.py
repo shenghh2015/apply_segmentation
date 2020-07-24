@@ -6,6 +6,7 @@ import create_models as sm
 import os
 import numpy as np
 from skimage import io
+from keras_applications.imagenet_utils import preprocess_input
 
 from sklearn.metrics import confusion_matrix
 from helper_function import precision, recall, f1_score, iou_calculate
@@ -37,9 +38,10 @@ images = np.stack(images); gt_maps = np.stack(gt_maps) # an array of image and g
 
 ## Image preprocessing
 print('Preprocessing ...')
-backbone = 'efficientnetb3'
-preprocess_input = sm.get_preprocessing(backbone) ## preprocessing function
-images = preprocess_input(images); #gt_maps = preprocess_input(gt_maps)
+# backbone = 'efficientnetb3'
+# preprocess_input = sm.get_preprocessing(backbone) ## preprocessing function
+# images = preprocess_input(images); #gt_maps = preprocess_input(gt_maps)
+images = preprocess_input(images, mode='torch'); 
 print('Preprocessing done !')
 
 ## Load the trained model
