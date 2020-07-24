@@ -1,7 +1,7 @@
 import tensorflow as tf
 import sys
-sys.path.append('segment')
-import segment as sm
+sys.path.append('create_models')
+import create_models as sm
 
 import os
 import numpy as np
