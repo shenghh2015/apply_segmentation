@@ -24,15 +24,16 @@ model_folder = model_root_dir+model_name
 ## parse model name
 backbone = 'efficientnetb3'
 val_dim = 832   # input image dimension dim x dim x 3
-
+preprocess_input = sm.get_preprocessing(BACKBONE)
 data_dir = './data'
 image_dir = os.path.join(data_dir, 'images'); map_dir = os.path.join(data_dir, 'gt_maps')
 image_fns = os.listdir(image_dir)
 images = []; gt_maps = []
 for img_fn in image_fns:
 	image = io.imread(image_dir+'/{}'.format(img_fn)); images.append(image)
-	gt_map =  io.imread(image_dir+'/{}'.format(img_fn)); gt_maps.append(gt_map)
+	gt_map =  io.imread(map_dir+'/{}'.format(img_fn)); gt_maps.append(gt_map)
 images = np.stack(images); gt_maps = np.stack(gt_maps)
+
 
 # classes for data loading and preprocessing
 class Dataset:

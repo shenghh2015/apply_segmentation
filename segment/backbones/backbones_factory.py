@@ -46,8 +46,6 @@ class BackbonesFactory(ModelsFactory):
     def models(self):
         all_models = copy.copy(self._models)
         all_models.update(self._models_update)
-        for k in self._models_delete:
-            del all_models[k]
         return all_models
 
     def get_backbone(self, name, *args, **kwargs):
