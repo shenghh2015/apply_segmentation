@@ -22,7 +22,7 @@ model_name = 'livedead-net-Unet-bone-efficientnetb3-pre-True-epoch-200-batch-14-
 model_folder = model_root_dir+model_name
 
 ## Load the testing images and ground truth label maps
-data_dir = '~/segmentation_models/phase_cells/data/live_dead/'
+data_dir = '/home/sh38/segmentation_models/phase_cells/data/live_dead/'
 # data_dir = './data'		# dataset diretory
 image_dir = os.path.join(data_dir, 'test_images2')	# image directory: save each input image as a RGB image [HxWx3], where each channel 
 												# contain the same phase contrast image; normalize the values into pixel values 
