@@ -94,12 +94,12 @@ def set_framework(name):
 
 # set default framework
 _framework = os.environ.get('SM_FRAMEWORK', _DEFAULT_KERAS_FRAMEWORK)
-print(_framework)
-try:
-    set_framework(_framework)
-except ImportError:
-    other = _TF_KERAS_FRAMEWORK_NAME if _framework == _KERAS_FRAMEWORK_NAME else _KERAS_FRAMEWORK_NAME
-    set_framework(other)
+# print(_framework)
+# try:
+set_framework(_framework)
+# except ImportError:
+#     other = _TF_KERAS_FRAMEWORK_NAME if _framework == _KERAS_FRAMEWORK_NAME else _KERAS_FRAMEWORK_NAME
+#     set_framework(other)
 
 print('Segmentation Models: using `{}` framework.'.format(_KERAS_FRAMEWORK))
 
