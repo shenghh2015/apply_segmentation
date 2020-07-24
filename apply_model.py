@@ -4,10 +4,10 @@ sys.path.append('segment')
 import segment as sm
 
 import os
-from skimage import io
 import numpy as np
-from sklearn.metrics import confusion_matrix
+from skimage import io
 
+from sklearn.metrics import confusion_matrix
 from helper_function import precision, recall, f1_score, iou_calculate
 
 import glob
