@@ -45,7 +45,7 @@ images = preprocess_input(images); #gt_maps = preprocess_input(gt_maps)
 model=tf.keras.models.load_model(model_folder+'/ready_model.h5')
 
 ## Label map prediction
-pr_masks = model.predict(images); ## probability maps [N(num of images) x H x W x C(class)] for 0: live, 1: intermediate, 2: dead, 3: background 
+pr_masks = model.predict(images, batch_size=1); ## probability maps [N(num of images) x H x W x C(class)] for 0: live, 1: intermediate, 2: dead, 3: background 
 pr_masks_ = np.zeros(pr_masks.shape, dtype = np.float32)
 pr_masks_[:,:,:,0] = pr_masks[:,:,:,3]; pr_masks_[:,:,:,1:]= pr_masks[:,:,:,:3] # 0:background, 1:live, 2:intermediate, 3:dead 
 pr_maps = np.argmax(pr_masks_,axis=-1)   # predicted label map
