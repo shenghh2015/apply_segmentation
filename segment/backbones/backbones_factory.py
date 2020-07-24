@@ -1,6 +1,6 @@
 import copy
 from . import model as eff
-from models_factory import ModelsFactory
+from .models_factory import ModelsFactory
 
 
 class BackbonesFactory(ModelsFactory):
