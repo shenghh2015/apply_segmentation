@@ -1,65 +1,38 @@
-import os
-import cv2
-
+import tensorflow as tf
 import sys
 sys.path.append('segment')
-import tensorflow as tf
-import numpy as np
-import argparse
 import segment as sm
+import albumentations as A
+
+import os
+from skimage import io
+import numpy as np
+from sklearn.metrics import confusion_matrix
 
 from helper_function import precision, recall, f1_score, iou_calculate
-from sklearn.metrics import confusion_matrix
 
 # sm.set_framework('tf.keras')
 import glob
 from natsort import natsorted
 
-os.environ["CUDA_VISIBLE_DEVICES"] = '2'
-model_root_folder = './trained_models/'
-# model_root_folder = '/data/models/'
+os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+model_root_dir = './trained_models/'  # model root folder
 
-#model_name = 'livedead-net-Unet-bone-efficientnetb1-pre-True-epoch-300-batch-7-lr-0.0005-banl-False-dim-800-train-900-bk-0.5-one-False-rot-0.0-set-1664'
-#model_name = 'cellcycle-net-Unet-bone-efficientnetb2-pre-True-epoch-200-batch-7-lr-0.0005-down-True-dim-800-train-1100-bk-0.5-rot-0.0-set-1984'
-model_name = 'livedead-net-Unet-bone-efficientnetb3-pre-True-epoch-200-batch-14-lr-0.0005-banl-False-dim-512-train-900-bk-0.5-one-True'
-model_folder = model_root_folder+model_name
+model_name = 'livedead-net-Unet-bone-efficientnetb3-pre-True-epoch-200-batch-14-lr-0.0005-banl-False-dim-512-train-900-bk-0.5-one-True' # model folder
+model_folder = model_root_dir+model_name
 
 ## parse model name
-splits = model_name.split('-')
-if splits[0] == 'cell_cycle':
-	dataset = 'cell_cycle2'
-	val_dim = 992
-else:
-	dataset = 'live_dead'
-	val_dim = 832
+backbone = 'efficientnetb3'
+val_dim = 832   # input image dimension dim x dim x 3
 
-for v in range(len(splits)):
-	if splits[v]=='set':
-		if splits[v+1] == 'dead':
-			dataset = 'live_'+splits[v+1]
-		if splits[v+1] == '1664':
-			dataset = 'live_dead_'+splits[v+1]
-			val_dim = 1664
-		if splits[v+1] == '1984':
-			dataset = 'cell_cycle_'+splits[v+1]
-			val_dim = 1984
-	elif splits[v] == 'net':
-		net_arch = splits[v+1]
-	elif splits[v] == 'bone':
-		backbone = splits[v+1]
-
-DATA_DIR = '/data/datasets/{}'.format(dataset)
-x_train_dir = os.path.join(DATA_DIR, 'train_images')
-y_train_dir = os.path.join(DATA_DIR, 'train_masks')
-
-x_valid_dir = os.path.join(DATA_DIR, 'val_images')
-y_valid_dir = os.path.join(DATA_DIR, 'val_masks')
-
-x_test_dir = os.path.join(DATA_DIR, 'test_images')
-y_test_dir = os.path.join(DATA_DIR, 'test_masks')
-
-if dataset == 'live_dead':
-	x_train_dir +='2'; x_valid_dir+= '2'; x_test_dir+='2'
+data_dir = './data'
+image_dir = os.path.join(data_dir, 'images'); map_dir = os.path.join(data_dir, 'gt_maps')
+image_fns = os.listdir(image_dir)
+images = []; gt_maps = []
+for img_fn in image_fns:
+	image = io.imread(image_dir+'/{}'.format(img_fn)); images.append(image)
+	gt_map =  io.imread(image_dir+'/{}'.format(img_fn)); gt_maps.append(gt_map)
+images = np.stack(images); gt_maps = np.stack(gt_maps)
 
 # classes for data loading and preprocessing
 class Dataset:
@@ -102,10 +75,8 @@ class Dataset:
         image = cv2.imread(self.images_fps[i])
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         mask = cv2.imread(self.masks_fps[i], 0)
-#         print(np.unique(mask))
-        # extract certain classes from mask (e.g. cars)
+
         masks = [(mask == v) for v in self.class_values]
-#         print(self.class_values)
         mask = np.stack(masks, axis=-1).astype('float')
         
         # add background if mask is not binary
@@ -169,8 +140,6 @@ class Dataloder(tf.keras.utils.Sequence):
         if self.shuffle:
             self.indexes = np.random.permutation(self.indexes)
 
-import albumentations as A
-
 def round_clip_0_1(x, **kwargs):
     return x.round().clip(0, 1)
 
@@ -178,7 +147,6 @@ def get_validation_augmentation(dim = 832):
     """Add paddings to make image shape divisible by 32"""
     test_transform = [
         A.PadIfNeeded(dim, dim)
-#         A.PadIfNeeded(384, 480)
     ]
     return A.Compose(test_transform)
 
@@ -203,15 +171,6 @@ if os.path.exists(model_folder+'/ready_model.h5'):
 
 preprocess_input = sm.get_preprocessing(backbone)
 
-
-# evaluate model
-subsets = ['train', 'val', 'test']
-subset = subsets[2]
-
-if subset == 'val':
-	x_test_dir = x_valid_dir; y_test_dir = y_valid_dir
-elif subset == 'train':
-	x_test_dir = x_train_dir; y_test_dir = y_train_dir
 
 CLASSES = ['live', 'inter', 'dead']
 test_dataset = Dataset(
