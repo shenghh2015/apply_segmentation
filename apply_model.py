@@ -1,7 +1,7 @@
 import tensorflow as tf
 import sys
 sys.path.append('create_models')
-import create_models as sm
+import create_models as cm
 
 import os
 import numpy as np
@@ -10,9 +10,6 @@ from keras_applications.imagenet_utils import preprocess_input
 
 from sklearn.metrics import confusion_matrix
 from helper_function import precision, recall, f1_score, iou_calculate
-
-import glob
-from natsort import natsorted
 
 ## Set the which GPU to run
 os.environ["CUDA_VISIBLE_DEVICES"] = '1'  
@@ -39,9 +36,8 @@ images = np.stack(images); gt_maps = np.stack(gt_maps) # an array of image and g
 ## Image preprocessing
 print('Preprocessing ...')
 backbone = 'efficientnetb3'
-preprocess_input = sm.get_preprocessing(backbone) ## preprocessing function
-images = preprocess_input(images); #gt_maps = preprocess_input(gt_maps)
-# images = preprocess_input(images, mode='torch'); 
+preprocess_input = cm.get_preprocessing(backbone) ## preprocessing function
+images = preprocess_input(images); # will scale pixels between 0 and 1 and then will normalize each channel with respect to the ImageNet dataset
 print('Preprocessing done !')
 
 ## Load the trained model
